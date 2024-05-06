@@ -1,2 +1,3 @@
 # Beetrayal
- Game about bee
+
+Developed with Unreal Engine 5

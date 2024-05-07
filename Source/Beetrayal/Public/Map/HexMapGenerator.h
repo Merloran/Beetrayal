@@ -9,6 +9,8 @@
 
 #include "HexMapGenerator.generated.h"
 
+class ANavMeshBoundsVolume;
+
 UCLASS()
 class BEETRAYAL_API AHexMapGenerator : public AActor
 {
@@ -37,11 +39,24 @@ protected:
 
 	/** Distance between center and hexagon vertex */
 	UPROPERTY(Category = "Map", EditAnywhere)
-	float tileSize;
+	double tileSize;
+
+	/** It defines where */
+	UPROPERTY(Category = "Map", EditAnywhere)
+	FVector2D tileVerticalBounds;
+
+	/** Reference to bounding volume that will be used for AI and must be adjusted to bound whole map */
+	UPROPERTY(Category = "Map", EditAnywhere)
+	TObjectPtr<ANavMeshBoundsVolume> volume;
 
 private:
+	/** Random generator and seed are used to make the generation reproducible in case of bugs */
 	FRandomStream randomGenerator;
 	int32 seed;
+
+	/** Bounds that are used to adjust navigation volume */
+	TStaticArray<FVector, 2> mapBounds;
+
 	/** Collection of all spawned tiles */
 	TMap<FHexVector, TObjectPtr<AHexTile>> tileMap;
 
@@ -124,4 +139,5 @@ private:
 	/** Returns tiles without nullptrs */
 	TArray<TSubclassOf<AHexTile>> select_valid_tiles(const TArray<TSubclassOf<AHexTile>> &tiles);
 
+	void adjust_volume();
 };

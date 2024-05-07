@@ -1,16 +1,25 @@
 #include "Map/HexMapGenerator.h"
 
 #include <Containers/Deque.h>
+#include <NavMesh/NavMeshBoundsVolume.h>
+
+#include "NavigationSystem.h"
+#include "AI/NavigationSystemBase.h"
+
 
 // Sets default values
 AHexMapGenerator::AHexMapGenerator()
 	: bIsInDepthMap(false)
 	, mapSize(0)
 	, tileSize(1200.0)
+	, tileVerticalBounds(-50.0, 500.0)
 	, seed(0)
 	, entranceTile(nullptr)
 	, exitTile(nullptr)
+	, volume(nullptr)
 {
+	mapBounds[0] = FVector(TNumericLimits<double>::Max());
+	mapBounds[1] = FVector(-TNumericLimits<double>::Max());
 }
 
 void AHexMapGenerator::BeginPlay()
@@ -49,6 +58,12 @@ void AHexMapGenerator::BeginPlay()
 			generate_map(true);
 		}
 	}
+
+	if (IsValid(volume))
+	{
+		adjust_volume();
+	}
+
 }
 
 TArray<TSubclassOf<AHexTile>> AHexMapGenerator::select_entrance_tiles(const TArray<TSubclassOf<AHexTile>> &tileSet)
@@ -421,10 +436,14 @@ void AHexMapGenerator::spawn_map(const TArray<TPair<FHexVector, TSubclassOf<AHex
 	{
 		FHexVector gridLocation = pair.Key;
 		TSubclassOf<AHexTile> tile = pair.Value;
-		
-		spawnTransform.SetLocation(mapOrigin + offsetA * gridLocation.a + offsetC * gridLocation.c + offsetD * gridLocation.d);
+
+		FVector inWorldLocation = mapOrigin + offsetA * gridLocation.a + offsetC * gridLocation.c + offsetD * gridLocation.d;
+		spawnTransform.SetLocation(inWorldLocation);
 		spawnTransform.SetRotation(GetActorRotation().Quaternion());
 		spawnTransform.SetScale3D(GetActorScale3D());
+
+		mapBounds[0] = FVector::Min(inWorldLocation, mapBounds[0]);
+		mapBounds[1] = FVector::Max(inWorldLocation, mapBounds[1]);
 
 		AHexTile& spawnedTile = *GetWorld()->SpawnActorDeferred<AHexTile>(tile, spawnTransform);
 		spawnedTile.location = gridLocation;
@@ -492,6 +511,46 @@ TArray<TSubclassOf<AHexTile>> AHexMapGenerator::select_valid_tiles(const TArray<
 		}
 	}
 	return result;
+}
+
+void AHexMapGenerator::adjust_volume()
+{
+	//TODO: think of calculate it for 1 tile too
+	FVector origin  = GetActorLocation();
+	FVector toEnd   = mapBounds[1] - origin;
+	FVector toBegin = mapBounds[0] - origin;
+	bool isOriginEnd   = !toEnd.Normalize();
+	bool isOriginBegin = !toBegin.Normalize();
+	bool isOneTileMap  = isOriginBegin && isOriginEnd; // One tile should not have monsters
+
+	if (isOneTileMap)
+	{
+		return;
+	}
+
+	if (isOriginEnd)
+	{
+		toEnd = -toBegin;
+	}
+	else if (isOriginBegin)
+	{
+		toBegin = -toEnd;
+	}
+
+	FVector scale = GetActorScale3D();
+	FVector up = GetActorUpVector();
+	const double halfSqrtSix = FMath::Sqrt(6.0) * 0.5;
+	mapBounds[0] += (toBegin * tileSize * halfSqrtSix + up * tileVerticalBounds.X) * scale;
+	mapBounds[1] += (toEnd * tileSize * halfSqrtSix + up * tileVerticalBounds.Y) * scale;
+
+	FVector volumeScale = (mapBounds[1] - mapBounds[0]) * 0.5;
+	FVector mapCenter = mapBounds[0] + volumeScale;
+
+	volume->SetActorLocation(mapCenter);
+	constexpr double invVolumeBaseSize = 1.0 / 50.0;
+	volume->SetActorScale3D(volumeScale * invVolumeBaseSize);
+
+	FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld())->OnNavigationBoundsUpdated(volume);
 }
 
 

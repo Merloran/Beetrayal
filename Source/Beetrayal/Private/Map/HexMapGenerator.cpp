@@ -26,6 +26,11 @@ void AHexMapGenerator::BeginPlay()
 	offsetC = rotationMatrix.TransformVector(offsetC);
 	offsetD = rotationMatrix.TransformVector(offsetD);
 
+	FVector scale = GetActorScale3D();
+	offsetA *= scale;
+	offsetC *= scale;
+	offsetD *= scale;
+
 	assemblyTiles = select_valid_tiles(assemblyTiles);
 	for (int8 i = 0; i < 16; ++i) // Try to generate expected map size with exit
 	{
@@ -271,6 +276,9 @@ void AHexMapGenerator::spawn_exit(AHexTile &tile, const FVector &location)
 	FTransform spawnTransform;
 
 	spawnTransform.SetLocation(location + FVector(0, 0, tile.get_floor_height()));
+	spawnTransform.SetRotation(GetActorRotation().Quaternion());
+	spawnTransform.SetScale3D(GetActorScale3D());
+
 	AActor &exitRef = *GetWorld()->SpawnActor(exitObject, &spawnTransform);
 	exitRef.AttachToActor(&tile, FAttachmentTransformRules(EAttachmentRule::KeepWorld, true));
 }
@@ -416,6 +424,7 @@ void AHexMapGenerator::spawn_map(const TArray<TPair<FHexVector, TSubclassOf<AHex
 		
 		spawnTransform.SetLocation(mapOrigin + offsetA * gridLocation.a + offsetC * gridLocation.c + offsetD * gridLocation.d);
 		spawnTransform.SetRotation(GetActorRotation().Quaternion());
+		spawnTransform.SetScale3D(GetActorScale3D());
 
 		AHexTile& spawnedTile = *GetWorld()->SpawnActorDeferred<AHexTile>(tile, spawnTransform);
 		spawnedTile.location = gridLocation;

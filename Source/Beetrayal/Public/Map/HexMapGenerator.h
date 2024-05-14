@@ -11,6 +11,8 @@
 
 class ANavMeshBoundsVolume;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogHexMap, Log, All);
+
 UCLASS()
 class BEETRAYAL_API AHexMapGenerator : public AActor
 {

@@ -6,8 +6,8 @@
 #include "NavigationSystem.h"
 #include "AI/NavigationSystemBase.h"
 
+DEFINE_LOG_CATEGORY(LogHexMap);
 
-// Sets default values
 AHexMapGenerator::AHexMapGenerator()
 	: bIsInDepthMap(false)
 	, mapSize(0)
@@ -48,13 +48,13 @@ void AHexMapGenerator::BeginPlay()
 
 		if (generate_map())
 		{
-			UE_LOG(LogInit, Display, TEXT("Map generated with seed: %d"), seed);
+			UE_LOG(LogHexMap, Display, TEXT("Map generated with seed: %d"), seed);
 			break;
 		}
 		
 		if (i == 15)
 		{
-			UE_LOG(LogInit, Display, TEXT("Map generated with seed: %d"), seed);
+			UE_LOG(LogHexMap, Display, TEXT("Map generated with seed: %d"), seed);
 			generate_map(true);
 		}
 	}

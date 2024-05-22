@@ -12,37 +12,64 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "KismetTraceUtils.h"
+#include "Engine/HitResult.h"
 #include "Engine/LocalPlayer.h"
+#include "Equipment/Item.h"
+#include "Equipment/WeaponComponent.h"
 
 DEFINE_LOG_CATEGORY(LogRubee);
 
 ARubee::ARubee()
+	: pickUpRange(250.0f)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
-	cameraFP = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	cameraFP = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraFirstPerson"));
 	cameraFP->SetupAttachment(GetCapsuleComponent());
 	cameraFP->SetRelativeLocation(FVector(-10.f, 0.f, 60.f));
 	cameraFP->bUsePawnControlRotation = true;
 
-	skeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	skeletalMesh->SetOnlyOwnerSee(true);
-	skeletalMesh->SetupAttachment(cameraFP);
-	skeletalMesh->bCastDynamicShadow = false;
-	skeletalMesh->CastShadow		 = false;
-
-	skeletalMesh->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	USkeletalMeshComponent& mesh = *GetMesh();
+	mesh.SetOnlyOwnerSee(true);
+	mesh.SetupAttachment(cameraFP);
+	mesh.bCastDynamicShadow = false;
+	mesh.CastShadow			= false;
+	mesh.SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	experience = FindComponentByClass<UExperienceComponent>();
 	health	   = FindComponentByClass<UHealthComponent>();
 	honey	   = FindComponentByClass<UHoneyComponent>();
 }
 
-USkeletalMeshComponent* ARubee::get_skeletal_mesh() const
+void ARubee::Tick(float DeltaTime)
 {
-	return skeletalMesh;
+	Super::Tick(DeltaTime);
+
+	FHitResult hitInfo;
+	FVector origin = GetActorLocation() + cameraFP->GetRelativeLocation();
+	FVector destination = origin + cameraFP->GetForwardVector() * pickUpRange;
+
+	bool bIsHit = GetWorld()->LineTraceSingleByChannel(hitInfo, origin, destination, ECC_Visibility);
+
+	// DrawDebugLineTraceSingle(GetWorld(), origin, destination, EDrawDebugTrace::Type::ForDuration, bIsHit, hitInfo, FLinearColor::Red, FLinearColor::Blue, 10.0f);
+	if (bIsHit)
+	{
+		AItem *item = Cast<AItem>(hitInfo.GetActor());
+		if (item)
+		{
+			UWeaponComponent* weaponComponent = item->GetComponentByClass<UWeaponComponent>();
+			if (weaponComponent)
+			{
+				item->SetActorEnableCollision(false);
+				weaponComponent->attach(this);
+			}
+			GEngine->AddOnScreenDebugMessage(0, 10.0f, FColor::Red, item->GetFullName());
+		}
+	}
+	
 }
 
 UCameraComponent* ARubee::get_camera_fp() const

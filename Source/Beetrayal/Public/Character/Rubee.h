@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Rubee.generated.h"
 
+class UEquipmentComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
 class UHoneyComponent;
@@ -18,47 +19,49 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRubee, Log, All);
 
-UCLASS()
+UCLASS(config = Game)
 class BEETRAYAL_API ARubee : public ACharacter
 {
 	GENERATED_BODY()
 
-public:
-
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInputAction> lookAction;
-
-private:
-	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USkeletalMeshComponent> skeletalMesh;
+protected:
 
 	/** First person camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> cameraFP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resources", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resources")
 	TObjectPtr<UExperienceComponent> experience;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resources", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resources")
 	TObjectPtr<UHealthComponent> health;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resources", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resources")
 	TObjectPtr<UHoneyComponent> honey;
 
 	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> jumpAction;
 
 	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> moveAction;
+
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> lookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
+	TObjectPtr<UEquipmentComponent> equipment;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
+	double pickUpRange;
+
 
 public:
 	ARubee();
 
-	USkeletalMeshComponent *get_skeletal_mesh() const;
+	virtual void Tick(float DeltaTime) override;
 
 	UCameraComponent *get_camera_fp() const;
 

@@ -13,15 +13,20 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "KismetTraceUtils.h"
+#include "Blueprint/UserWidget.h"
+#include "Character/RubeeWidget.h"
 #include "Engine/HitResult.h"
 #include "Engine/LocalPlayer.h"
 #include "Equipment/Item.h"
 #include "Equipment/WeaponComponent.h"
+#include "GameFramework/GameSession.h"
+#include "GameFramework/HUD.h"
 
 DEFINE_LOG_CATEGORY(LogRubee);
 
 ARubee::ARubee()
 	: pickUpRange(250.0f)
+	, bIsDebug(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -38,10 +43,6 @@ ARubee::ARubee()
 	mesh.bCastDynamicShadow = false;
 	mesh.CastShadow			= false;
 	mesh.SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
-
-	experience = FindComponentByClass<UExperienceComponent>();
-	health	   = FindComponentByClass<UHealthComponent>();
-	honey	   = FindComponentByClass<UHoneyComponent>();
 }
 
 void ARubee::Tick(float DeltaTime)
@@ -53,20 +54,33 @@ void ARubee::Tick(float DeltaTime)
 	FVector destination = origin + cameraFP->GetForwardVector() * pickUpRange;
 
 	bool bIsHit = GetWorld()->LineTraceSingleByChannel(hitInfo, origin, destination, ECC_Visibility);
+	if (bIsDebug)
+	{
+		DrawDebugLineTraceSingle(GetWorld(), 
+								 origin, 
+								 destination, 
+								 EDrawDebugTrace::Type::ForDuration, 
+								 bIsHit, hitInfo,
+								 FLinearColor::Red, 
+								 FLinearColor::Blue,
+								 10.0f);
+	}
 
-	// DrawDebugLineTraceSingle(GetWorld(), origin, destination, EDrawDebugTrace::Type::ForDuration, bIsHit, hitInfo, FLinearColor::Red, FLinearColor::Blue, 10.0f);
 	if (bIsHit)
 	{
-		AItem *item = Cast<AItem>(hitInfo.GetActor());
-		if (item)
+		focusedItem = Cast<AItem>(hitInfo.GetActor());
+		if (focusedItem)
 		{
-			UWeaponComponent* weaponComponent = item->GetComponentByClass<UWeaponComponent>();
-			if (weaponComponent)
+			if (rubeeWidget)
 			{
-				item->SetActorEnableCollision(false);
-				weaponComponent->attach(this);
+				rubeeWidget->set_interaction_text("Take [E]");
 			}
-			GEngine->AddOnScreenDebugMessage(0, 10.0f, FColor::Red, item->GetFullName());
+		}
+	} else {
+		focusedItem = nullptr;
+		if (rubeeWidget)
+		{
+			rubeeWidget->set_interaction_text("");
 		}
 	}
 	
@@ -81,6 +95,17 @@ UCameraComponent* ARubee::get_camera_fp() const
 void ARubee::BeginPlay()
 {
 	Super::BeginPlay();
+
+	experience = FindComponentByClass<UExperienceComponent>();
+	health	   = FindComponentByClass<UHealthComponent>();
+	honey	   = FindComponentByClass<UHoneyComponent>();
+
+	if (rubeeWidget)
+	{
+		CreateWidget(GetWorld(), rubeeWidget.GetClass(), FName("RubeeWidget"));
+		rubeeWidget->AddToViewport();
+		rubeeWidget->set_interaction_text("");
+	}
 }
 
 void ARubee::move(const FInputActionValue& value)
@@ -109,6 +134,21 @@ void ARubee::look(const FInputActionValue& value)
 	}
 }
 
+void ARubee::interact()
+{
+	if (!focusedItem)
+	{
+		return;
+	}
+
+	UWeaponComponent *weaponComponent = focusedItem->GetComponentByClass<UWeaponComponent>();
+	if (weaponComponent)
+	{
+		focusedItem->SetActorEnableCollision(false);
+		weaponComponent->attach(this);
+	}
+}
+
 // Called to bind functionality to input
 void ARubee::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -124,6 +164,8 @@ void ARubee::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 		// Looking
 		EnhancedInputComponent->BindAction(lookAction, ETriggerEvent::Triggered, this, &ARubee::look);
+
+		EnhancedInputComponent->BindAction(interactAction, ETriggerEvent::Triggered, this, &ARubee::interact);
 	} else {
 		UE_LOG(LogRubee, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}

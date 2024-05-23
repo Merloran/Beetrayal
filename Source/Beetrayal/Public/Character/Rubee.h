@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Rubee.generated.h"
 
+class AItem;
+class URubeeWidget;
 class UEquipmentComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
@@ -25,7 +27,6 @@ class BEETRAYAL_API ARubee : public ACharacter
 	GENERATED_BODY()
 
 protected:
-
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> cameraFP;
@@ -51,12 +52,24 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> lookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
+	/** Interact/PickUp input action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> interactAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<UEquipmentComponent> equipment;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	double pickUpRange;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	TObjectPtr<URubeeWidget> rubeeWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")
+	bool bIsDebug;
+
+private:
+	TObjectPtr<AItem> focusedItem;
 
 public:
 	ARubee();
@@ -74,7 +87,8 @@ protected:
 	/** Called for looking input */
 	void look(const FInputActionValue &value);
 
+	void interact();
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent *InputComponent) override;
-	// End of APawn interface
 };

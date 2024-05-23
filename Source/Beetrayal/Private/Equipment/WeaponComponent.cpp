@@ -69,7 +69,7 @@ void UWeaponComponent::attack()
 	APlayerController *playerController = Cast<APlayerController>(character->GetController());
 	UCameraComponent *camera = character->GetComponentByClass<UCameraComponent>();
 	UWorld *const world = GetWorld();
-	if (!world || !playerController || !camera || attackGrid.X + attackGrid.Y <= 2)
+	if (!world || !playerController || !camera || attackGrid.X <= 0 || attackGrid.Y <= 0)
 	{
 		return;
 	}

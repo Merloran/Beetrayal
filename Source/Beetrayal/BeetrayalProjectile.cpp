@@ -3,6 +3,7 @@
 #include "BeetrayalProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ABeetrayalProjectile::ABeetrayalProjectile() 
 {
@@ -36,7 +37,7 @@ void ABeetrayalProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActo
 	// Only add impulse and destroy projectile if we hit a physics
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
-		Destroy();
+		//OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		//Destroy();
 	}
 }

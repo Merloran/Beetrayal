@@ -10,16 +10,14 @@ UCLASS()
 class BEETRAYAL_API ASpawner : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	ASpawner();
 
 protected:
-
-	virtual void BeginPlay() override;
-
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<AActor>> Enemies;
 
+public:	
+	ASpawner();
+
+protected:
+	virtual void BeginPlay() override;
 };

@@ -8,24 +8,30 @@ AItem::AItem()
 	: name("None")
 	, size(1)
 	, bCanBeDropped(true)
+	, bIsAnimated(false)
+	, rotationSpeed(10.0)
+	, scaleSpeed(0.1)
+	, movementOffset(100.0)
+	, movementSpeed(10.0)
+	, bIsAnimationStarted(false)
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
-// Called when the game starts or when spawned
 void AItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-// Called every frame
 void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+	if (bIsAnimated)
+	{
+		animate_item(DeltaTime);
+	}
 }
 
 
@@ -42,4 +48,48 @@ int32 AItem::get_item_size() const
 bool AItem::can_be_dropped() const
 {
 	return bCanBeDropped;
+}
+
+void AItem::animate_item(float deltaTime)
+{
+	if (!bIsAnimationStarted)
+	{
+		bIsAnimationStarted = true;
+		beginPoint = GetActorLocation();
+	}
+
+	AddActorWorldRotation(FQuat(GetActorUpVector(), FMath::DegreesToRadians(rotationSpeed)));
+	FVector scale = GetActorScale3D();
+
+	scale += FVector(scaleSpeed * deltaTime);
+	clamp_vector(scale, FVector(0.0), FVector(1.0));
+	SetActorScale3D(scale);
+
+	double length    = (GetActorLocation() - beginPoint).Length();
+	FVector position = GetActorLocation();
+	if (length >= movementOffset)
+	{
+		movementSpeed *= -1.0;
+	}
+	position		+= GetActorUpVector() * movementSpeed * deltaTime;
+
+	clamp_vector(position, beginPoint - GetActorUpVector() * movementOffset, beginPoint + GetActorUpVector() * movementOffset);
+	SetActorLocation(position);
+}
+
+void AItem::reset_animation()
+{
+	bIsAnimationStarted = false;
+}
+
+void AItem::set_animated(bool value)
+{
+	bIsAnimated = value;
+}
+
+void AItem::clamp_vector(FVector &vector, const FVector &min, const FVector &max)
+{
+	vector.X = FMath::Clamp(vector.X, min.X, max.X);
+	vector.Y = FMath::Clamp(vector.Y, min.Y, max.Y);
+	vector.Z = FMath::Clamp(vector.Z, min.Z, max.Z);
 }

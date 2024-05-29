@@ -144,8 +144,11 @@ void ARubee::interact()
 	UWeaponComponent *weaponComponent = focusedItem->GetComponentByClass<UWeaponComponent>();
 	if (weaponComponent)
 	{
-		focusedItem->SetActorEnableCollision(false);
-		weaponComponent->attach(this);
+		if (weaponComponent->attach(this))
+		{
+			focusedItem->set_animated(false);
+			focusedItem->SetActorEnableCollision(false);
+		}
 	}
 }
 

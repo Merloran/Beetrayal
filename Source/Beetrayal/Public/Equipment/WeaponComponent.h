@@ -14,7 +14,7 @@ class BEETRAYAL_API UWeaponComponent : public USkeletalMeshComponent
 {
 	GENERATED_BODY()
 
-public:
+protected:
 	/** Switch between ray cast and spawn projectile */
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	bool bIsProjectileCollide;
@@ -88,6 +88,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	bool bIsWingDistributionAttack;
 
+	/** Attack cooldown in milliseconds */
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float attackCooldownMs;
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
@@ -115,6 +118,11 @@ private:
 	/** The Character holding this weapon */
 	TObjectPtr<ACharacter> character;
 
+	/** Timer used with cooldown */
+	FTimerHandle timer;
+
+	bool hasCooldown;
+
 public:	
 	UWeaponComponent();
 
@@ -133,5 +141,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+	void reset_cooldown();
+
 	FVector to_world_coordinates(const FVector& sphericalCoordinates) const;
 };

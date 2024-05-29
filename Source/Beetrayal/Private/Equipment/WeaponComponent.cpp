@@ -22,6 +22,8 @@ UWeaponComponent::UWeaponComponent()
 	, bIsDebug(false)
 	, bIsWingDistributionAttack(false)
 	, bIsAxisInverted(false)
+	, attackCooldownMs(100.0f)
+	, hasCooldown(false)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -61,7 +63,7 @@ bool UWeaponComponent::attach(ACharacter *target)
 
 void UWeaponComponent::attack()
 {
-	if (!character)
+	if (!character || hasCooldown || attackGrid.X <= 0 || attackGrid.Y <= 0)
 	{
 		return;
 	}
@@ -69,10 +71,14 @@ void UWeaponComponent::attack()
 	APlayerController *playerController = Cast<APlayerController>(character->GetController());
 	UCameraComponent *camera = character->GetComponentByClass<UCameraComponent>();
 	UWorld *const world = GetWorld();
-	if (!world || !playerController || !camera || attackGrid.X <= 0 || attackGrid.Y <= 0)
+	if (!world || !playerController || !camera)
 	{
 		return;
 	}
+
+	hasCooldown = true;
+
+	GetWorld()->GetTimerManager().SetTimer(timer, this, &UWeaponComponent::reset_cooldown, attackCooldownMs * 0.001f);
 
 	const FRotator rotation = camera->GetComponentRotation();
 	const FVector origin = GetOwner()->GetActorLocation() + rotation.RotateVector(originOffset);
@@ -171,6 +177,11 @@ void UWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			subsystem->RemoveMappingContext(weaponMapping);
 		}
 	}
+}
+
+void UWeaponComponent::reset_cooldown()
+{
+	hasCooldown = false;
 }
 
 FVector UWeaponComponent::to_world_coordinates(const FVector &sphericalCoordinates) const

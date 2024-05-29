@@ -21,6 +21,26 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	bool bCanBeDropped;
 
+	UPROPERTY(EditAnywhere, Category = "Item")
+	bool bIsAnimated;
+
+	UPROPERTY(EditAnywhere, Category = "InvitingAnimation")
+	double rotationSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "InvitingAnimation")
+	double scaleSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "InvitingAnimation")
+	double movementOffset;
+
+	UPROPERTY(EditAnywhere, Category = "InvitingAnimation")
+	double movementSpeed;
+
+private:
+	bool bIsAnimationStarted;
+	FVector beginPoint;
+
+
 public:	
 	AItem();
 	virtual void Tick(float DeltaTime) override;
@@ -29,7 +49,18 @@ public:
 	int32 get_item_size() const;
 	bool can_be_dropped() const;
 
+	UFUNCTION(BlueprintCallable)
+	void animate_item(float deltaTime);
+
+	UFUNCTION(BlueprintCallable)
+	void reset_animation();
+
+	UFUNCTION(BlueprintCallable)
+	void set_animated(bool value);
+
 protected:
 	virtual void BeginPlay() override;
 
+private:
+	void clamp_vector(FVector &vector, const FVector &min, const FVector &max);
 };

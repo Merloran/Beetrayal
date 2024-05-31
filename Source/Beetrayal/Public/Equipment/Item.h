@@ -6,7 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "Item.generated.h"
 
-UCLASS()
+class ARubee;
+
+UCLASS(Blueprintable, BlueprintType)
 class BEETRAYAL_API AItem : public AActor
 {
 	GENERATED_BODY()
@@ -21,7 +23,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	bool bCanBeDropped;
 
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "InvitingAnimation")
 	bool bIsAnimated;
 
 	UPROPERTY(EditAnywhere, Category = "InvitingAnimation")
@@ -40,7 +42,6 @@ private:
 	bool bIsAnimationStarted;
 	FVector beginPoint;
 
-
 public:	
 	AItem();
 	virtual void Tick(float DeltaTime) override;
@@ -57,6 +58,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void set_animated(bool value);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void pick(ARubee *character);
 
 protected:
 	virtual void BeginPlay() override;

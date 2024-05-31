@@ -146,6 +146,7 @@ void ARubee::interact()
 	{
 		if (weaponComponent->attach(this))
 		{
+			focusedItem->pick(this);
 			focusedItem->set_animated(false);
 			focusedItem->SetActorEnableCollision(false);
 		}

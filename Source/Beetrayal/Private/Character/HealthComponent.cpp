@@ -23,39 +23,53 @@ void UHealthComponent::BeginPlay()
 
 void UHealthComponent::TakeDamage(AActor *DamagedActor, float Damage, AController *InstigatedBy, FVector HitLocation, UPrimitiveComponent *FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType *DamageType, AActor *DamageCauser)
 {
-	onTakenDamage.Broadcast();
-	if (Damage == 0) 
+	if (Damage == 0.0f) 
 	{
 		return;
 	}
 
-	currentHealth = FMath::Clamp(currentHealth - Damage, 0, maxHealth);
-
-	if (currentHealth == 0) 
+	if (Damage > 0.0f)
 	{
-		OnZeroHP();
+		injure(FMath::Abs(Damage));
+		onInjure.Broadcast();
+	}
+	else if (currentHealth != maxHealth) 
+	{
+		heal(FMath::Abs(Damage));
+		onHeal.Broadcast();
+	}
+	
+
+	if (currentHealth == 0.0) 
+	{
+		on_zero_health();
 	}
 }
 
-void UHealthComponent::OnZeroHP() const
+void UHealthComponent::on_zero_health() const
 {
 	onDeath.Broadcast();
 }
 
 void UHealthComponent::heal(double amount)
 {
-	currentHealth = FMath::Clamp((currentHealth + amount), 0, maxHealth);;
+	currentHealth = FMath::Clamp(currentHealth + amount, 0.0, maxHealth);;
+}
+
+void UHealthComponent::injure(double amount)
+{
+	currentHealth = FMath::Clamp(currentHealth - amount, 0.0, maxHealth);;
 }
 
 void UHealthComponent::InstantKill(AActor *DamagedActor, UPrimitiveComponent *FHitComponent, FVector ShotFromDirection, const UDamageType *DamageType, AActor *DamageCauser)
 {
-	if (currentHealth <= 0)
+	if (currentHealth <= 0.0)
 	{
 		return;
 	}
 
-	currentHealth = 0;
-	OnZeroHP();
+	currentHealth = 0.0;
+	on_zero_health();
 }
 
 double UHealthComponent::get_max_health()

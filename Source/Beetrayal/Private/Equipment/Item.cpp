@@ -88,9 +88,7 @@ void AItem::set_animated(bool value)
 }
 
 void AItem::pick_Implementation(ARubee* character)
-{
-	bIsAnimated = false;
-}
+{}
 
 void AItem::clamp_vector(FVector &vector, const FVector &min, const FVector &max)
 {

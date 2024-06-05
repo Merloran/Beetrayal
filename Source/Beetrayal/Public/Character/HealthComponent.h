@@ -18,7 +18,10 @@ public:
 	FOnDeath onDeath;
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
-	FOnDeath onTakenDamage;
+	FOnDeath onInjure;
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+	FOnDeath onHeal;
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -32,6 +35,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void heal(double amount);
+
+	UFUNCTION(BlueprintCallable)
+	void injure(double amount);
 
 	UFUNCTION(BlueprintCallable)
 	void TakeDamage(AActor *DamagedActor, 
@@ -61,7 +67,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void OnZeroHP() const;
+	void on_zero_health() const;
 
 		
 };

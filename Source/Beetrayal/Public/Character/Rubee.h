@@ -62,7 +62,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	double pickUpRange;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gameplay")
 	TObjectPtr<URubeeWidget> rubeeWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gameplay")

@@ -69,12 +69,9 @@ void ARubee::Tick(float DeltaTime)
 	if (bIsHit)
 	{
 		focusedItem = Cast<AItem>(hitInfo.GetActor());
-		if (focusedItem)
+		if (focusedItem && rubeeWidget)
 		{
-			if (rubeeWidget)
-			{
-				rubeeWidget->set_interaction_text("Take [E]");
-			}
+			rubeeWidget->set_interaction_text("Take [E]");
 		}
 	} else {
 		focusedItem = nullptr;
@@ -141,16 +138,7 @@ void ARubee::interact()
 		return;
 	}
 
-	UWeaponComponent *weaponComponent = focusedItem->GetComponentByClass<UWeaponComponent>();
-	if (weaponComponent)
-	{
-		if (weaponComponent->attach(this))
-		{
-			focusedItem->pick(this);
-			focusedItem->set_animated(false);
-			focusedItem->SetActorEnableCollision(false);
-		}
-	}
+	focusedItem->pick(this);
 }
 
 // Called to bind functionality to input

@@ -1,15 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Map/ItemSpawner.h"
 
 #include "Equipment/Item.h"
 
-// Sets default values
 AItemSpawner::AItemSpawner()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
 }
 
 void AItemSpawner::BeginPlay()

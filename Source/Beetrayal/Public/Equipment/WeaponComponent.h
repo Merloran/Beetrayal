@@ -9,6 +9,8 @@
 class UInputMappingContext;
 class UInputAction;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttack, ACharacter*, instigator);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BEETRAYAL_API UWeaponComponent : public USkeletalMeshComponent
 {
@@ -24,7 +26,7 @@ protected:
 	double length;
 
 	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bIsProjectileCollide == true", EditConditionHides), Category = "Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	TSubclassOf<AActor> projectileClass;
 
 	/** Value that defines number of projectiles/raycasts */
@@ -114,15 +116,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> hideAction;
 
+	UPROPERTY(BlueprintAssignable, Category = "Attack")
+	FOnAttack onAttack;
+
 private:
 	/** The Character holding this weapon */
 	TObjectPtr<ACharacter> character;
 
 	/** Timer used with cooldown */
 	FTimerHandle timer;
-
-	bool hasCooldown;
-
 public:	
 	UWeaponComponent();
 

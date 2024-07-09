@@ -20,10 +20,9 @@ UWeaponComponent::UWeaponComponent()
 	, randomVerticalOffsetBounds(0.0)
 	, originOffset(100.0, 0.0, 10.0)
 	, bIsDebug(false)
-	, bIsWingDistributionAttack(false)
 	, bIsAxisInverted(false)
+	, bIsWingDistributionAttack(false)
 	, attackCooldownMs(100.0f)
-	, hasCooldown(false)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -63,22 +62,23 @@ bool UWeaponComponent::attach(ACharacter *target)
 
 void UWeaponComponent::attack()
 {
-	if (!character || hasCooldown || attackGrid.X <= 0 || attackGrid.Y <= 0)
+	UWorld *const world = GetWorld();
+	if (!world || !character || attackGrid.X <= 0 || attackGrid.Y <= 0)
 	{
 		return;
 	}
 
 	APlayerController *playerController = Cast<APlayerController>(character->GetController());
 	UCameraComponent *camera = character->GetComponentByClass<UCameraComponent>();
-	UWorld *const world = GetWorld();
-	if (!world || !playerController || !camera)
+	FTimerManager &timerManager = world->GetTimerManager();
+	if (timerManager.IsTimerActive(timer) || !playerController || !camera)
 	{
 		return;
 	}
+	
+	onAttack.Broadcast(character);
 
-	hasCooldown = true;
-
-	GetWorld()->GetTimerManager().SetTimer(timer, this, &UWeaponComponent::reset_cooldown, attackCooldownMs * 0.001f);
+	timerManager.SetTimer(timer, this, &UWeaponComponent::reset_cooldown, attackCooldownMs * 0.001f);
 
 	const FRotator rotation = camera->GetComponentRotation();
 	const FVector origin = GetOwner()->GetActorLocation() + rotation.RotateVector(originOffset);
@@ -114,7 +114,7 @@ void UWeaponComponent::attack()
 			if (!bIsProjectileCollide)
 			{
 				FHitResult hitInfo;
-				bool doesHit = world->LineTraceSingleByChannel(hitInfo, origin, destination, ECC_Visibility);
+				bool doesHit = world->LineTraceSingleByChannel(hitInfo, origin, destination, ECC_GameTraceChannel1);
 				if (bIsDebug)
 				{
 					DrawDebugLineTraceSingle(GetWorld(),
@@ -126,6 +126,15 @@ void UWeaponComponent::attack()
 											 FLinearColor::Red,
 											 FLinearColor::Blue,
 											 10.0f);
+				}
+
+				if (doesHit && hitInfo.GetActor() != character)
+				{
+					OnComponentHit.Broadcast(hitInfo.Component.Get(),
+											 hitInfo.GetActor(),
+											 hitInfo.GetComponent(),
+											 hitInfo.ImpactNormal, 
+											 hitInfo);
 				}
 			}
 
@@ -181,7 +190,7 @@ void UWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UWeaponComponent::reset_cooldown()
 {
-	hasCooldown = false;
+	GetWorld()->GetTimerManager().ClearTimer(timer);
 }
 
 FVector UWeaponComponent::to_world_coordinates(const FVector &sphericalCoordinates) const

@@ -6,22 +6,42 @@
 #include "Components/ActorComponent.h"
 #include "ExperienceComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelUp);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGainExperience, uint64, experience);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BEETRAYAL_API UExperienceComponent : public UActorComponent
 {
 	GENERATED_BODY()
+public:
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+	FOnLevelUp onLevelUp;
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+	FOnGainExperience onGainExperience;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Gameplay")
+	int64 ownedExperience;
 
 private:
-	static constexpr uint64 EXPERIENCE_FOR_FIRST_LEVEL = 100;
-	uint64 currentExperience;
-	uint32 level;
+	static constexpr int64 EXPERIENCE_FOR_FIRST_LEVEL = 100;
+	int32 level;
 
 public:	
 	UExperienceComponent();
 
-	void gain_experience(const uint64 experience);
-	uint64 get_current_experience() const;
-	uint32 get_level() const;
+	UFUNCTION(BlueprintCallable)
+	void gain_experience(const int64 experience);
+
+	UFUNCTION(BlueprintCallable)
+	int64 get_current_experience() const;
+
+	UFUNCTION(BlueprintCallable)
+	int32 get_level() const;
+
+	UFUNCTION(BlueprintCallable)
+	void reset_level();
 
 protected:
 	virtual void BeginPlay() override;

@@ -188,6 +188,11 @@ void UWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
+ACharacter *UWeaponComponent::get_holder() const
+{
+	return character;
+}
+
 void UWeaponComponent::reset_cooldown()
 {
 	GetWorld()->GetTimerManager().ClearTimer(timer);

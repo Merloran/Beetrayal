@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Character/HealthComponent.h"
 
 UHealthComponent::UHealthComponent()
@@ -23,6 +20,12 @@ void UHealthComponent::BeginPlay()
 
 void UHealthComponent::TakeDamage(AActor *DamagedActor, float Damage, AController *InstigatedBy, FVector HitLocation, UPrimitiveComponent *FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType *DamageType, AActor *DamageCauser)
 {
+	if (!InstigatedBy)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Controller is nullptr"));
+		return;
+	}
+
 	if (Damage == 0.0f) 
 	{
 		return;
@@ -31,24 +34,23 @@ void UHealthComponent::TakeDamage(AActor *DamagedActor, float Damage, AControlle
 	if (Damage > 0.0f)
 	{
 		injure(FMath::Abs(Damage));
-		onInjure.Broadcast();
+		onInjure.Broadcast(InstigatedBy->GetPawn());
 	}
 	else if (currentHealth != maxHealth) 
 	{
 		heal(FMath::Abs(Damage));
-		onHeal.Broadcast();
+		onHeal.Broadcast(nullptr);
 	}
-	
 
 	if (currentHealth == 0.0) 
 	{
-		on_zero_health();
+		on_zero_health(InstigatedBy->GetPawn());
 	}
 }
 
-void UHealthComponent::on_zero_health() const
+void UHealthComponent::on_zero_health(AActor *deathCauser) const
 {
-	onDeath.Broadcast();
+	onDeath.Broadcast(deathCauser);
 }
 
 void UHealthComponent::heal(double amount)
@@ -69,7 +71,7 @@ void UHealthComponent::InstantKill(AActor *DamagedActor, UPrimitiveComponent *FH
 	}
 
 	currentHealth = 0.0;
-	on_zero_health();
+	on_zero_health(nullptr);
 }
 
 double UHealthComponent::get_max_health()
@@ -86,4 +88,3 @@ void UHealthComponent::set_current_health(double value)
 {
 	currentHealth = value;
 }
-

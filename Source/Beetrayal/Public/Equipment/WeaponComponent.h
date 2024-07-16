@@ -136,6 +136,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void attack();
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	ACharacter *get_holder() const;
+
 protected:
 	virtual void BeginPlay() override;
 

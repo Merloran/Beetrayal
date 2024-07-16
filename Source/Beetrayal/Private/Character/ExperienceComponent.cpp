@@ -2,34 +2,49 @@
 
 
 UExperienceComponent::UExperienceComponent()
-	: currentExperience(0)
+	: ownedExperience(0)
 	, level(0)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UExperienceComponent::gain_experience(const uint64 experience)
+void UExperienceComponent::gain_experience(const int64 experience)
 {
-	currentExperience += experience;
+	onGainExperience.Broadcast(experience);
+	ownedExperience += experience;
 	update_level();
 }
 
-uint64 UExperienceComponent::get_current_experience() const
+int64 UExperienceComponent::get_current_experience() const
 {
-	return currentExperience;
+	return ownedExperience;
 }
 
-uint32 UExperienceComponent::get_level() const
+int32 UExperienceComponent::get_level() const
 {
 	return level;
+}
+
+void UExperienceComponent::reset_level()
+{
+	ownedExperience = 0;
+	update_level();
 }
 
 void UExperienceComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	update_level();
 }
 
 void UExperienceComponent::update_level()
 {
-	level = FMath::Log2(double(uint64(currentExperience / EXPERIENCE_FOR_FIRST_LEVEL)));
+	int32 previousLevel = level;
+	level = FMath::Log2(double(int64(ownedExperience * 2 / EXPERIENCE_FOR_FIRST_LEVEL)));
+
+	if (level > previousLevel)
+	{
+		onLevelUp.Broadcast();
+	}
 }

@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, deathCauser);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BEETRAYAL_API UHealthComponent : public UActorComponent
@@ -67,7 +67,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void on_zero_health() const;
+	void on_zero_health(AActor* deathCauser) const;
 
 		
 };

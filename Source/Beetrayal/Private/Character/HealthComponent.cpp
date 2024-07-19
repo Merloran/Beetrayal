@@ -20,47 +20,47 @@ void UHealthComponent::BeginPlay()
 
 void UHealthComponent::TakeDamage(AActor *DamagedActor, float Damage, AController *InstigatedBy, FVector HitLocation, UPrimitiveComponent *FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType *DamageType, AActor *DamageCauser)
 {
-	if (!InstigatedBy)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Controller is nullptr"));
-		return;
-	}
-
 	if (Damage == 0.0f) 
 	{
 		return;
 	}
 
+	AActor *causer = nullptr;
+	if (InstigatedBy)
+	{
+		causer = InstigatedBy->GetPawn();
+	}
+
 	if (Damage > 0.0f)
 	{
-		injure(FMath::Abs(Damage));
-		onInjure.Broadcast(InstigatedBy->GetPawn());
+		injure(FMath::Abs(Damage), causer);
 	}
 	else if (currentHealth != maxHealth) 
 	{
-		heal(FMath::Abs(Damage));
-		onHeal.Broadcast(nullptr);
+		heal(FMath::Abs(Damage), causer);
 	}
 
 	if (currentHealth == 0.0) 
 	{
-		on_zero_health(InstigatedBy->GetPawn());
+		on_zero_health(causer);
 	}
 }
 
-void UHealthComponent::on_zero_health(AActor *deathCauser) const
+void UHealthComponent::on_zero_health(AActor *causer) const
 {
-	onDeath.Broadcast(deathCauser);
+	onDeath.Broadcast(causer);
 }
 
-void UHealthComponent::heal(double amount)
+void UHealthComponent::heal(double amount, AActor* causer)
 {
-	currentHealth = FMath::Clamp(currentHealth + amount, 0.0, maxHealth);;
+	currentHealth = FMath::Clamp(currentHealth + amount, 0.0, maxHealth);
+	onHeal.Broadcast(causer);
 }
 
-void UHealthComponent::injure(double amount)
+void UHealthComponent::injure(double amount, AActor* causer)
 {
-	currentHealth = FMath::Clamp(currentHealth - amount, 0.0, maxHealth);;
+	currentHealth = FMath::Clamp(currentHealth - amount, 0.0, maxHealth);
+	onInjure.Broadcast(causer);
 }
 
 void UHealthComponent::InstantKill(AActor *DamagedActor, UPrimitiveComponent *FHitComponent, FVector ShotFromDirection, const UDamageType *DamageType, AActor *DamageCauser)
@@ -71,7 +71,7 @@ void UHealthComponent::InstantKill(AActor *DamagedActor, UPrimitiveComponent *FH
 	}
 
 	currentHealth = 0.0;
-	on_zero_health(nullptr);
+	on_zero_health(DamageCauser);
 }
 
 double UHealthComponent::get_max_health()

@@ -34,10 +34,10 @@ public:
 	UHealthComponent();
 
 	UFUNCTION(BlueprintCallable)
-	void heal(double amount);
+	void heal(double amount, AActor* causer = nullptr);
 
 	UFUNCTION(BlueprintCallable)
-	void injure(double amount);
+	void injure(double amount, AActor* causer = nullptr);
 
 	UFUNCTION(BlueprintCallable)
 	void TakeDamage(AActor *DamagedActor, 
@@ -67,7 +67,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void on_zero_health(AActor* deathCauser) const;
+	void on_zero_health(AActor* causer = nullptr) const;
 
 		
 };

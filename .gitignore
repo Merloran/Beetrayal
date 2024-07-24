@@ -14,3 +14,8 @@ Saved
 *.xcworkspace
 #Some Junky directory
 Downloaded
+Bats/BuildProject.bat
+Bats/OpenEditor.bat
+Bats/PATHS.bat
+Bats/ShowEnvironmentalVariables.bat
+Bats/TO_URUCHOM.bat
